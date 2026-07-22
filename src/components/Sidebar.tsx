@@ -19,7 +19,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200"><img src="https://raw.githubusercontent.com/yalugagenda-hash/gestaofaxinas/refs/heads/main/casalogo.png" alt="Logo" className="h-16 w-auto" />
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200"><img src="https://raw.githubusercontent.com/yalugagenda-hash/gestaofaxinas/refs/heads/main/casacirculo.png" alt="Logo" className="h-16 w-auto" />
           <span className="text-lg font-bold text-brand-700">Inventário Yalug</span>
           <button className="lg:hidden" onClick={onClose}>
             <X size={20} />
