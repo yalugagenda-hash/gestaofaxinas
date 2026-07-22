@@ -1,11 +1,16 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import { useItem, useItemMutations } from '../../hooks/useItens'
 import { useCategorias } from '../../hooks/useCategorias'
 import { useAmbientes } from '../../hooks/useAmbientes'
 import PhotoUpload from '../../components/PhotoUpload'
 import type { EstadoItem, ItemFoto } from '../../types'
+
+interface PendingFoto {
+  file: File
+  preview: string
+}
 
 export default function ItemForm() {
   const { id } = useParams()
@@ -28,6 +33,10 @@ export default function ItemForm() {
   const [observacoes, setObservacoes] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // Fotos escolhidas antes de o item existir no banco (modo criação)
+  const [pendingFotos, setPendingFotos] = useState<PendingFoto[]>([])
+  const pendingInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     if (item) {
       setPatrimonio(item.patrimonio)
@@ -41,6 +50,32 @@ export default function ItemForm() {
       setObservacoes(item.observacoes || '')
     }
   }, [item])
+
+  // Libera as URLs de pré-visualização ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      pendingFotos.forEach((p) => URL.revokeObjectURL(p.preview))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function handlePendingFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    const novas = Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }))
+    setPendingFotos((prev) => [...prev, ...novas])
+    if (pendingInputRef.current) pendingInputRef.current.value = ''
+  }
+
+  function removePendingFoto(index: number) {
+    setPendingFotos((prev) => {
+      const alvo = prev[index]
+      if (alvo) URL.revokeObjectURL(alvo.preview)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -63,6 +98,15 @@ export default function ItemForm() {
         navigate(`/itens/${id}`)
       } else {
         const novo = await criar.mutateAsync(payload)
+
+        // Envia as fotos que ficaram pendentes durante a criação
+        if (pendingFotos.length > 0) {
+          await uploadFotos.mutateAsync({
+            itemId: novo.id,
+            files: pendingFotos.map((p) => p.file),
+          })
+        }
+
         navigate(`/itens/${novo.id}`)
       }
     } finally {
@@ -162,20 +206,55 @@ export default function ItemForm() {
           <textarea className="input" rows={2} value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
         </div>
 
-        {isEdit && (
-          <div>
-            <label className="label">Fotos</label>
+        <div>
+          <label className="label">Fotos</label>
+
+          {isEdit ? (
             <PhotoUpload
               fotos={item?.fotos || []}
               onUpload={handleUpload}
               onRemove={handleRemoveFoto}
               uploading={uploadFotos.isPending}
             />
-          </div>
-        )}
-        {!isEdit && (
-          <p className="text-xs text-gray-400">Salve o item primeiro para poder anexar fotos.</p>
-        )}
+          ) : (
+            <div>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {pendingFotos.map((p, index) => (
+                  <div key={p.preview} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200">
+                    <img src={p.preview} alt="Pré-visualização" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePendingFoto(index)}
+                      className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => pendingInputRef.current?.click()}
+                  className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-brand-400 hover:text-brand-500"
+                >
+                  <Upload size={20} />
+                  <span className="text-xs">Adicionar</span>
+                </button>
+              </div>
+              <input
+                ref={pendingInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handlePendingFiles(e.target.files)}
+              />
+              <p className="mt-2 text-xs text-gray-400">
+                As fotos selecionadas serão enviadas automaticamente ao salvar o item.
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
           <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
