@@ -28,7 +28,7 @@ export default function Login() {
           <div className="rounded-xl bg-brand-600 p-3 text-white">
             <Package size={24} />
           </div>
-          <h1 className="text-xl font-bold">Inventário Patrimonial</h1>
+          <h1 className="text-xl font-bold">Inventário Yalug</h1>
           <p className="text-sm text-gray-500">Entre com sua conta para continuar</p>
         </div>
 
