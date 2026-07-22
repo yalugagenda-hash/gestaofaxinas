@@ -20,7 +20,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
         }`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <span className="text-lg font-bold text-brand-700">Patrimônio</span>
+          <span className="text-lg font-bold text-brand-700">Patrimônio yalug</span>
           <button className="lg:hidden" onClick={onClose}>
             <X size={20} />
           </button>
