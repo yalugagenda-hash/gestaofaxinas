@@ -26,7 +26,7 @@ export default function Login() {
       <div className="card w-full max-w-sm p-8">
         <div className="mb-6 flex flex-col items-center gap-2">
           <div className="rounded-xl bg-brand-600 p-3 text-white">
-            <img src="https://raw.githubusercontent.com/yalugagenda-hash/gestaofaxinas/refs/heads/main/logocasa.png" alt="Logo" className="h-16 w-auto" />
+            <img src="https://raw.githubusercontent.com/yalugagenda-hash/gestaofaxinas/refs/heads/main/logo-negativo.png" alt="Logo" className="h-16 w-auto" />
           </div>
           <h1 className="text-xl font-bold">Inventário Yalug</h1>
           <p className="text-sm text-gray-500">Entre com sua conta para continuar</p>
